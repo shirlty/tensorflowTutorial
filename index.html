@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>TensorFlow Tutorial</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="tutorial.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <div class="jumbotron">
+      <h1>TensorFlow Tutorial</h1>
+      <p class="lead">A tutorial on how TensorFlow works and how to use it</p>
+    </div>
+
+    <div class="content-container container">
+      <div class="main-content">
+
+        <h2>Overview</h2>
+        <hr>
+        <p>An overview of tensorflow goes here</p>
+
+        <h2>TensorFlow Mechanics</h2>
+        <hr>
+
+        <p>
+          TensorFlow uses dataflow graphs to reprsent computations applied to data. Each node, called an "operation" or "op", represents a computation. Edges on an op represent dependencies an op has on other ops. During evaluation of the graph, TensorFlow uses backpropagation to perform ops, meaning that if an op has dependencies, the dependencies will be evaluated before the op can be evaluated. When TensorFlow executes an op, backpropagation allows TensorFlow to evaluate only the ops necessary for the computation. This further allows the separation of the graph's definition from its execution. A graph can be defined ahead of time with its ops, but in order to execute the graph, they must be run in a session.
+        </p>
+
+        <h2>Installation</h2>
+        <hr>
+
+        <p>
+          TensorFlow has a variety of installation methods available, as listed on the <a href="https://www.tensorflow.org/versions/master/get_started/os_setup.html">official site's installation page</a>. As of October, 2016, the supprted operatings systems are Mac OS X and Linux. In addition, there are CPU only and GPU enabled versions of TensorFlow, and version for Python 2.7 and Python 3. The GPU enabled versions require the additional installation of the CUDA toolkit and CuDNN. For the purposes of this tutorial, the CPU version of TensorFlow is sufficient. We will install the 64-bit Linux version of TensorFlow for Python 2.7 using pip.
+        </p>
+
+        <p>If pip is not already installed, type the following at a command terminal:</p>
+        <pre><code>sudo apt-get install python-pip python-dev</code></pre>
+
+        <p>After pip is installed, install TensorFlow:</p>
+        <pre><code>sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc1-cp27-none-linux_x86_64.whl</code></pre>
+
+        <p>After TensorFlow is installed, you can test your installation with the following code in python:</p>
+        <pre><code>import tensorflow as tf
+hello = tf.constant('Hello, TensorFlow!')
+sess = tf.Session()
+print(sess.run(hello))
+a = tf.constant(10)
+b = tf.constant(32)
+print(sess.run(a + b))</code></pre>
+
+        <p>Your output should match the below:</p>
+        <pre><code>>>> import tensorflow as tf
+>>> hello = tf.constant('Hello, TensorFlow!')
+>>> sess = tf.Session()
+>>> print(sess.run(hello))
+Hello, TensorFlow!
+>>> a = tf.constant(10)
+>>> b = tf.constant(32)
+>>> print(sess.run(a + b))
+42</code></pre>
+
+        <p>Let's move on to understanding these commands and the dataflow graph at a more granular level.</p>
+
+        <h2>GPU Enabled Version (Optional)</h2>
+        <hr>
+
+        <p>
+        If you want to install GPU enabled version, you need to do some extra works. Take Linux as an example, you need to install Cuda Toolkit and cuDNN.
+        </p>
+        <p>Firstly, you need to have a GPU card with NVidia Compute Capability, you could check your GPU card with following website:</p>
+        <a href="https://developer.nvidia.com/cuda-gpus">https://developer.nvidia.com/cuda-gpus</a>
+        <p></p>
+        <p>Secondly, install Cuda Toolkit according to following website:</p>
+        <a href="https://developer.nvidia.com/cuda-downloads">https://developer.nvidia.com/cuda-downloads</a>
+        <p></p>
+        <p>Note:</p>
+        <p>Install version 8.0 if using our binary releases;Install the toolkit into e.g. /usr/local/cuda</p>
+        <p>After Cuda Toolkit is installed, download cuDNN v5 by following website:</p>
+        <a href="https://developer.nvidia.com/cudnn">https://developer.nvidia.com/cudnn</a>
+        <p></p>
+        <p>Run following commands to uncompress and copy the cuDNN files into the toolkit directory. (Assuming the toolkit is installed in  /usr/local/cuda)</p>
+        <pre><code>tar xvzf cudnn-8.0-linux-x64-v5.1-ga.tgz
+sudo cp cuda/include/cudnn.h /usr/local/cuda/include
+sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
+sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*</code></pre>
+
+        <p>After Cuda Toolkit and cuDNN are installed, you could install TensorFlow. As mentioned above, you should installed pip first and use pip uninstall to make sure you removed previous version. type the following at a command terminal:</p>
+        <pre><code>sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0rc2-cp27-none-linux_x86_64.whl</code></pre>
+
+        <p>One more step before  test your installation. You need to set the LD_LIBRARY_PATH and CUDA_HOME environment variables. Consider adding the commands below to your ~/.bash_profile. These assume your CUDA installation is in /usr/local/cuda:</p>
+        <pre><code>export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64"
+export CUDA_HOME=/usr/local/cuda</code></pre>
+        <p>It’s time to test your installation. You could use commands mentioned in INSTALLATION part to test your installation. If you can’t get expected result, you could check here:</p>
+        <a href="https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html#common-problems">common-problems</a>
+
+        <h2>Basics</h2>
+        <hr>
+        <p>Let's start by looking at the simplest graph in TensorFlow.</p>
+        <pre><code>import tensorflow as tf
+graph = tf.get_default_graph()</code></pre>
+
+        <p>Before we even do anything, TensorFlow has already created a default graph for us.</p>
+
+        <pre><code>graph.get_operations()</code></pre>
+
+        <p>However, it does not contain any ops yet. Let's add one.</p>
+        <pre><code>input = tf.constant(1.0)</code></pre>
+
+        <p>
+          As you might have guessed already, this adds an op with a constant value of 1.0 to the graph. Note that the variable <em>does not</em> refer to the value of the constant, it refers to the op, that is, to the node in the graph. Let's take a closer look at it.
+        </p>
+        <pre><code>input
+## &lt;tf.Tensor 'Const:0' shape=() dtype=float32&gt;</code></pre>
+        <p>
+          This tells us that input has the type tf.Tensor, an id of 'Const:0', a shape of 0 dimensions, and a data type of a 32-bit float. The type is just the type of the object (in this case, a TensorFlow tensor). The id is used by the graph internally refer to that specific op. The shape represents the dimensions of the tensor. An empty shape represents 0 dimensions, i.e., a point, which makes sense, because the op represents a constant value. Finally, the data type reprsents the type of data being used in the tensor.
+        </p>
+        <p>
+          Notice that there is one important thing missing from this output. There is no mention of the actual value of the constant! As was mentioned before, TensorFlow defines a graph first and then later executes it in a session. To actually get the constant value of this op, we must execute it using a session.
+        </p>
+        <pre><code>sess = tf.Session()
+sess.run(input)
+## 1.0</code></pre>
+
+        <p>
+          Note that we can also access this op through the graph itself. We can also use the <code>node_def</code> property to get all information of a node.
+        </p>
+        <pre><code>operations = graph.get_operations()
+operations[0].node_def</code></pre>
+
+        <p>
+          Because TensorFlow defines everything in terms of ops that must be executed how the graph actually looks may be different than we expect. This is most apparent when we add a variable to the graph and look at the resulting ops in the graph.
+        </p>
+        <pre><code>weight = tf.variable(0.8)
+for op in graph.get_operations(): print(op.name)
+## Const
+## Variable/initial_value
+## Variable
+## Variable/Assign
+## Variable/read</code></pre>
+        <p>
+          Instead of just adding 1 op to the graph, adding a variable added 4! Again, this is because TensorFlow must have things as a node in the graph in order to execute them. If we look through the ops we can see that there is an op to:
+        </p>
+        <ul>
+          <li>Initialize the variable's value (will be initalized to 0.8)</li>
+          <li>Hold the variable's value</li>
+          <li>Assign the variable's value (for example, with the result of another op)</li>
+          <li>Read the variable's value (another op may need this variable's value)</li>
+        </ul>
+
+          <!-- MNIST Example -->
+          <h2>MNIST Data Tutorial</h2>
+                <hr>
+                <p>
+                    MNIST (Mixed National Institute of Standards and Technology) database is basically a large database of handwritten digits used to train imaging processing systems. In this tutorial, we will use Tensorflow to create an image recognition system that recognizes digits.
+                </p>
+                <p>
+                    In order to use the MNIST data in tensorflow, we must first download and read in the data.
+                    <pre><code>from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)</code></pre>
+                </p>
+
+                <p>Now we inmport Tensorflow</p>
+                <pre><code>import tensorflow as tf</code></pre>
+                <p>Each image in the MNIST data is 28 by 28 pixels, so we can think of each image as an array of 28*28=748 large integer values. So we now create a placeholder value for when we input the data into Tensorflow. We also need two additional variables to correctly measure and gauge the output in order to facilitate machine learning. W is set to [784,10] because we want to multiply this value by the [None,784] array to get a resulting 10 dimensional (only 10 possible digits) result array, which we will then add it to b. </p>
+                <pre><code>x = tf.placeholder(tf.float32, [None, 784])
+W = tf.Variable(tf.zeros([784, 10]))
+b = tf.Variable(tf.zeros([10]))                </code></pre>
+
+<p>Now let’s create the softmax regression.</p>
+<pre><code>y = tf.nn.softmax(tf.matmul(x, W) + b)</code></pre>
+
+<p>In order to train our model, we need something to measure how bad our predictions are. In this tutorial, we will use cross-entropy. We first add a placeholder for the correct data for our function, and then implement it. </p>
+<pre><code>y_ = tf.placeholder(tf.float32, [None, 10])
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+</code></pre>
+
+<p>Let’s define the training parameters for this session. We have a learning rate of 0.5 and each time we learn, we are trying to minimize the our error, which is our cross_entropy.</p>
+<pre><code>train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)</code></pre>
+
+<p>Now let’s train our model. First we need to initialize all our variables, and then run it in a session.</p>
+<pre><code>init = tf.initialize_all_variables()
+sess = tf.Session()
+sess.run(init)
+</code></pre>
+   <p>
+       Let’s train this 1000 times:
+   </p>
+   <pre><code>for i in range(1000):
+  batch_xs, batch_ys = mnist.train.next_batch(100)
+  sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+</code></pre>
+
+<p>After training, we can evalulate the accuracy of our model. Remember, y was the result we received from our softmax regression, while y_ was the correct data we read in. We first get a list of booleans to see if our predictions are correct, and cast each boolean to a floating point number and get the mean, which will be our accuracy. We then use our session to run this against our test data. </p>
+
+<pre><code>correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+</code></pre>
+
+<p>You should get an accuracy around 92%. Try feeding it more data and training it more times to get higher.  </p>
+          <hr/>
+          <br/>
+
+          <!-- Evan: TensorBoard -->
+          <h2>TensorBoard</h2>
+          <hr/>
+          <p>TensorFlow computation graphs can become very large and complex, making them difficult to debug via code. TensorBoard provides tools to help visualize, understand, and debug your computation graphs.</p>
+          <br/>
+
+          <h3>Setup</h3>
+          <p>Although TensorBoard is a critical tool in developing effective TensorFlow graphs, it does not work automatically. You must add specific "summary" ops to your graph that output their results to an event file. These summary ops must specify the values to log and the tags that identify them. Some possible summary ops are:</p>
+          <ul>
+                <li>scalar_summary: outputs a simple summary of scalar values</li>
+                <li>image_summary: outputs a summary of an image, including information about size and specific channels (RGBA)</li>
+                <li>audio_summary: outputs a summary of audio data, including information about frames, channels, and sample rate</li>
+                <li>histogram_summary: outputs a histogram of values</li>
+                <li>zero_fraction: outputs the fraction of zeros in the value (sparsity)</li>
+          </ul>
+          <p>Example function that creates mean, standard deviation, min, max, and histogram summaries for a vector</p>
+          <pre><code>def variable_summaries(var, name):
+  with tf.name_scope('summaries'):
+    mean = tf.reduce_mean(var)
+    tf.scalar_summary('mean/' + name, mean)
+    with tf.name_scope('stddev'):
+      stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+    tf.scalar_summary('stddev/' + name, stddev)
+    tf.scalar_summary('max/' + name, tf.reduce_max(var))
+    tf.scalar_summary('min/' + name, tf.reduce_min(var))
+    tf.histogram_summary(name, var)</code></pre>
+          <br/>
+          <p>Once you have added the desired summary ops to the nodes in your graph, you need to run them. To generate a single, combined summary you use the function merge_all_summaries to combine them all into a single op that generates all the summary data and keeps it together. Then, pass the results of this summary to a SummaryWriter to save the summary data into one event file. It is important to note that running the merged summary op every iteration of the graph will generate far more data than is useful, so it is common practice to only run, and log, the summary data every n iterations.</p>
+          <pre><code>merged = tf.merge_all_summaries()
+summary_writer = tf.train.SummaryWriter('/path/to/logs', sess.graph)</code></pre>
+          <br/>
+
+          <h3>Using</h3>
+          <p>Once the summaries have been recorded, you can open the event file in TensorBoard to begin investigating. You can examine either one run of your graph or compare multiple runs. To launch TensorBoard in your browser:</p>
+          <pre><code>tensorboard --logdir=path/to/logs</code></pre>
+          <br/>
+          <p>There are different dashboards used to view the different types of summaries.</p>
+
+          <ul>
+            <li>Events Dashboard: visualize scalar statistics as line charts</li>
+            <li>Image Dashboard: displays logged png files in rows (tags) and columns (runs)</li>
+            <li>Audio Dashboard: allows you to play logged audio files, displayed in rows (tags) and columns (runs)</li>
+            <li>Histogram Dashboard: visualizes histogram data (not actually histograms, just statistics about distribuions)</li>
+          </ul>
+          <br/>
+          <b>Event Dashboard</b><br/>
+            <img src="mnist_tensorboard.png" style="width: 80%;" /><br/><br/>
+
+          <h3>Graph Visualization</h3>
+          <p>In addition to logging and analyzing data about your computation graph as it runs, TensorBoard allows you to visualize the graph itself. Similar to how summary ops have to be explicitly defined, you must explicitly define the names, scopes, and symbols of nodes in the graph. </p>
+
+          <p>Node <b>names</b> are self explanatory. They are the labels the nodes will have in the visualization.</p>
+          <p>Node <b>scopes</b> are used to group nodes together into expandable nodes, that are collapsed by default. This is crucial when typical graphs can have thousands of nodes. The better the scopes are modeled, the better the visualization will be.</p>
+          <p>Node <b>symbols</b> are also fairly self explanatory. They are the symbol that will be used to represent the node on the graph. There are different symbols for high-level nodes, sequences of numbered nodes, individual op nodes, constants, summaries, and edges. Color schemes can also be specified. </p>
+
+          <pre><code>with tf.name_scope('hidden') as scope:
+  a = tf.constant(5, name='alpha')
+  W = tf.Variable(tf.random_uniform([1, 2], -1.0, 1.0), name='weights')
+  b = tf.Variable(tf.zeros([1]), name='biases')</code></pre>
+
+          <b>Graph Explorer</b><br/>
+            <img src="graph_vis_animation.gif" alt="Example" style="width: 80%;"/><br/><br/>
+        </div>
+    </div>
+
+  </body>
+</html>
